@@ -49,6 +49,12 @@ Route::prefix('api/wilayah')->name('wilayah.')->group(function () {
 // ── Public ────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/verifikasi',         [AuthController::class, 'showVerifikasi'])->name('auth.verifikasi');
+    Route::post('/verifikasi',        [AuthController::class, 'submitVerifikasi'])->name('auth.verifikasi.submit');
+    Route::post('/verifikasi/resend', [AuthController::class, 'resendOTP'])->name('auth.verifikasi.resend');
+});
+
 // ── Auth ──────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
@@ -60,7 +66,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ── Booking Flow ──────────────────────────────────────────────
-Route::prefix('booking')->name('booking.')->middleware('auth')->group(function () {
+Route::prefix('booking')->name('booking.')->middleware('auth', 'verified')->group(function () {
     Route::get('/',             [BookingController::class, 'pilihArmada'])->name('armada');
     Route::post('/armada',      [BookingController::class, 'simpanArmada'])->name('simpan-armada');
     Route::get('/rute-jadwal',  [BookingController::class, 'ruteJadwal'])->name('rute-jadwal');

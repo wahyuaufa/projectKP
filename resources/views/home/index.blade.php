@@ -1,7 +1,7 @@
 {{-- resources/views/home/index.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'PR GOTRAV Mitra Abadi - Travel Door to Door')
+@section('title', 'GOTRAV Travel')
 
 @section('content')
 

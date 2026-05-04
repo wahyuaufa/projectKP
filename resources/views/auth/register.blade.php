@@ -1,6 +1,6 @@
 {{-- resources/views/auth/register.blade.php --}}
 @extends('layouts.app')
-@section('title', 'Daftar Akun - PR GOTRAV')
+@section('title', 'Daftar Akun - GOTRAV Travel')
 @section('content')
 <section class="auth-section">
   <div class="container">
