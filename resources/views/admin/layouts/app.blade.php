@@ -243,7 +243,7 @@
 {{-- ── SIDEBAR ────────────────────────────────────────── --}}
 <aside class="admin-sidebar" id="adminSidebar">
   <div class="sidebar-brand">
-    <div class="sidebar-brand-icon"><i class="bi bi-bus-front-fill"></i></div>
+    <div class="sidebar-brand-icon"><img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 100%; height: auto;"></i></div>
     <div>
       <div class="sidebar-brand-text">GOTRAV</div>
       <div class="sidebar-brand-sub">Admin Dashboard</div>

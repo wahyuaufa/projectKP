@@ -296,20 +296,10 @@ class BookingController extends Controller
         $bagasiTambahan      = max(0, ($detail['jumlah_bagasi'] ?? 0) - $bagasiGratis);
         $biayaBagasiTambahan = $bagasiTambahan * $armada->biaya_bagasi_tambahan;
 
-        // $jamRaw         = $detail['jam_penjemputan'] ?? session('booking.jam_penjemputan') ?? '00:00';
-        // $jamPenjemputan = strlen($jamRaw) === 5 ? $jamRaw . ':00' : $jamRaw;
+        $jamRaw         = $detail['jam_penjemputan'] ?? session('booking.jam_penjemputan') ?? '00:00';
+        $jamPenjemputan = strlen($jamRaw) === 5 ? $jamRaw . ':00' : $jamRaw;
 
-        $jamPenjemputan = session('booking.jam_penjemputan');
-
-// Jika session utama kosong, baru ambil dari detail form
-if (!$jamPenjemputan) {
-    $jamPenjemputan = $detail['jam_penjemputan'] ?? '17:00'; // Default ke batas bawah jika error
-}
-
-// Pastikan format H:i:s untuk database
-if (strlen($jamPenjemputan) === 5) {
-    $jamPenjemputan .= ':00';
-}
+        
 
         $kode = null;
 

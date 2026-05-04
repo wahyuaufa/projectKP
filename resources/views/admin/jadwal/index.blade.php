@@ -15,16 +15,16 @@
     </button>
   </form>
   <div class="d-flex gap-2">
-    <button class="abtn abtn-outline" data-bs-toggle="modal" data-bs-target="#modalMassal">
+    <!-- <button class="abtn abtn-outline" data-bs-toggle="modal" data-bs-target="#modalMassal">
       <i class="bi bi-calendar-plus"></i> Jadwal Massal
-    </button>
+    </button> -->
     <button class="abtn abtn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
       <i class="bi bi-plus-lg"></i> Tambah Jadwal
     </button>
   </div>
 </div>
 
-{{-- ── Navigasi Tanggal cepat ──────────────────────────────── --}}
+{{-- ── Navigasi Tanggal Cepat ───────────────────────────────── --}}
 <div class="d-flex gap-1 mb-3 flex-wrap">
   @for($i = -1; $i <= 6; $i++)
   @php $tgl = now()->addDays($i)->format('Y-m-d'); $label = now()->addDays($i)->format('d/m'); @endphp
@@ -40,32 +40,49 @@
 <div class="acard mb-3">
   <div class="acard-header">
     <div class="d-flex align-items-center gap-3 flex-wrap">
+
       {{-- Jam --}}
-      <div style="font-size:1.4rem;font-weight:800;color:var(--primary);min-width:60px">
-        {{ substr($jadwal->jam_berangkat,0,5) }}
+      <div class="text-center" style="min-width:70px">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--primary);line-height:1">
+          {{ $jadwal->jam_berangkat === '00:00:00' ? '--:--' : substr($jadwal->jam_berangkat, 0, 5) }}
+        </div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:.1rem">
+          {{ $jadwal->jam_berangkat === '00:00:00' ? 'Fleksibel' : 'Jam Berangkat' }}
+        </div>
       </div>
-      {{-- Info --}}
+
+      {{-- Divider --}}
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+
+      {{-- Info Armada & Rute --}}
       <div>
         <div style="font-weight:700;font-size:.95rem">{{ $jadwal->armada->nama }}</div>
         <div style="font-size:.8rem;color:var(--muted)">
           {{ $jadwal->rute->kota_asal }} → {{ $jadwal->rute->kota_tujuan }}
         </div>
+        @if($jadwal->catatan_admin)
+        <div style="font-size:.75rem;color:var(--accent);margin-top:.2rem">
+          <i class="bi bi-sticky me-1"></i>{{ $jadwal->catatan_admin }}
+        </div>
+        @endif
       </div>
-      {{-- Penumpang --}}
+
+      {{-- Stat: Penumpang & Pemesanan --}}
       <div class="ms-auto d-flex align-items-center gap-3">
         <div class="text-center">
           <div style="font-weight:800;font-size:1.2rem;color:var(--primary)">
-            {{ $jadwal->pemesanans->sum('jumlah_penumpang') }}
+            {{ $jadwal->pemesanans->where('status', 'akan_datang')->sum('jumlah_penumpang') }}
           </div>
           <div style="font-size:.7rem;color:var(--muted)">Penumpang</div>
         </div>
         <div class="text-center">
           <div style="font-weight:800;font-size:1.2rem">
-            {{ $jadwal->pemesanans->count() }}
+            {{ $jadwal->pemesanans->where('status', 'akan_datang')->count() }}
           </div>
           <div style="font-size:.7rem;color:var(--muted)">Pemesanan</div>
         </div>
-        {{-- Driver badge --}}
+
+        {{-- Driver Badge --}}
         @if($jadwal->driver)
         <span class="abadge abadge-assign">
           <i class="bi bi-person-check"></i>{{ $jadwal->driver->nama }}
@@ -76,12 +93,13 @@
         </span>
         @endif
 
-        {{-- Edit btn --}}
+        {{-- Tombol Edit --}}
         <button class="abtn abtn-outline abtn-sm" data-bs-toggle="modal"
                 data-bs-target="#modalEdit{{ $jadwal->id }}">
           <i class="bi bi-pencil"></i>
         </button>
-        {{-- Share WA --}}
+
+        {{-- Tombol Share WA --}}
         <button class="abtn abtn-wa abtn-sm" onclick="shareWA({{ $jadwal->id }})">
           <i class="bi bi-whatsapp"></i> Share ke Driver
         </button>
@@ -97,6 +115,7 @@
         <tr>
           <th>Kode</th>
           <th>Penumpang</th>
+          <th>Jam Jemput</th>
           <th>Kursi</th>
           <th>Penjemputan</th>
           <th>Tujuan</th>
@@ -105,46 +124,77 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($jadwal->pemesanans as $p)
-        <tr>
+        @foreach($jadwal->pemesanans->sortBy('jam_penjemputan') as $p)
+        <tr style="{{ $p->status === 'dibatalkan' ? 'opacity:.5' : '' }}">
+
+          {{-- Kode --}}
           <td>
             <strong style="color:var(--primary);font-size:.82rem">{{ $p->kode_pemesanan }}</strong><br>
             <span style="font-size:.73rem;color:var(--muted)">{{ $p->user->no_whatsapp }}</span>
           </td>
+
+          {{-- Penumpang --}}
           <td style="font-size:.85rem">
             <strong>{{ $p->user->nama_lengkap }}</strong><br>
             <span style="color:var(--muted);font-size:.75rem">{{ $p->jumlah_penumpang }} orang</span>
           </td>
+
+          {{-- Jam Penjemputan --}}
+          <td>
+            <span style="font-family:var(--font-head);font-weight:800;font-size:.95rem;color:var(--primary)">
+              {{ substr($p->jam_penjemputan ?? '00:00:00', 0, 5) }}
+            </span>
+            <span style="font-size:.72rem;color:var(--muted)"> WIB</span>
+          </td>
+
+          {{-- Kursi --}}
           <td>
             @foreach($p->kursis as $k)
-            <span style="background:var(--primary);color:#fff;padding:.2rem .5rem;border-radius:5px;font-size:.75rem;margin:1px;display:inline-block">
+            <span style="background:var(--primary);color:#fff;padding:.2rem .5rem;
+                         border-radius:5px;font-size:.75rem;margin:1px;display:inline-block">
               {{ $k->nomor_kursi }}
             </span>
             @endforeach
           </td>
-          <td style="font-size:.8rem;max-width:180px">
-            {{ Str::limit($p->titik_penjemputan, 60) }}
-            @if(preg_match('/\[GPS: ([\-\d\.]+),([\-\d\.]+)\]/', $p->titik_penjemputan, $m))
-            <a href="https://maps.google.com/?q={{ $m[1] }},{{ $m[2] }}" target="_blank"
-               style="color:var(--primary);font-size:.72rem;display:block">
-              <i class="bi bi-geo-alt-fill"></i> Lihat Maps
+
+          {{-- Titik Penjemputan --}}
+          <td style="font-size:.8rem;max-width:200px">
+            {{ Str::limit(preg_replace('/\s*\[GPS:[^\]]+\]/', '', $p->titik_penjemputan), 60) }}
+            @if($p->lat_penjemputan && $p->lng_penjemputan)
+            <a href="{{ $p->maps_jemput }}" target="_blank"
+               style="color:#EA4335;font-size:.72rem;display:inline-flex;align-items:center;gap:2px;margin-top:2px;text-decoration:none;font-weight:600">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#EA4335">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              Lihat Maps
             </a>
             @endif
           </td>
-          <td style="font-size:.8rem;max-width:180px">
-            {{ Str::limit($p->titik_tujuan, 60) }}
-            @if(preg_match('/\[GPS: ([\-\d\.]+),([\-\d\.]+)\]/', $p->titik_tujuan, $m))
-            <a href="https://maps.google.com/?q={{ $m[1] }},{{ $m[2] }}" target="_blank"
-               style="color:var(--primary);font-size:.72rem;display:block">
-              <i class="bi bi-geo-alt-fill"></i> Lihat Maps
+
+          {{-- Titik Tujuan --}}
+          <td style="font-size:.8rem;max-width:200px">
+            {{ Str::limit(preg_replace('/\s*\[GPS:[^\]]+\]/', '', $p->titik_tujuan), 60) }}
+            @if($p->lat_tujuan && $p->lng_tujuan)
+            <a href="{{ $p->maps_tujuan }}" target="_blank"
+               style="color:#EA4335;font-size:.72rem;display:inline-flex;align-items:center;gap:2px;margin-top:2px;text-decoration:none;font-weight:600">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#EA4335">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              Lihat Maps
             </a>
             @endif
           </td>
+
+          {{-- Bagasi --}}
           <td style="font-size:.82rem">{{ $p->jumlah_bagasi }} item</td>
+
+          {{-- Status --}}
           <td>
             @php $badge = match($p->status) {
-              'akan_datang' => 'abadge-akan', 'selesai' => 'abadge-selesai',
-              'dibatalkan'  => 'abadge-batal', default => ''
+              'akan_datang' => 'abadge-akan',
+              'selesai'     => 'abadge-selesai',
+              'dibatalkan'  => 'abadge-batal',
+              default       => ''
             }; @endphp
             <span class="abadge {{ $badge }}">{{ $p->status_label }}</span>
           </td>
@@ -168,7 +218,8 @@
         @csrf @method('PUT')
         <div class="modal-header" style="border-bottom:1px solid var(--border)">
           <h6 class="modal-title" style="font-family:var(--font-head);font-weight:700">
-            Edit Jadwal — {{ substr($jadwal->jam_berangkat,0,5) }}
+            Edit Jadwal —
+            {{ $jadwal->jam_berangkat === '00:00:00' ? 'Fleksibel' : substr($jadwal->jam_berangkat, 0, 5) }}
           </h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -176,7 +227,10 @@
           <div>
             <label class="aform-label">Jam Berangkat</label>
             <input type="time" name="jam_berangkat" class="aform-control"
-                   value="{{ substr($jadwal->jam_berangkat,0,5) }}" required>
+                   value="{{ $jadwal->jam_berangkat === '00:00:00' ? '' : substr($jadwal->jam_berangkat, 0, 5) }}">
+            <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">
+              Kosongkan jika jam mengikuti jam penjemputan masing-masing penumpang
+            </div>
           </div>
           <div>
             <label class="aform-label">Harga / Orang (Rp)</label>
@@ -247,14 +301,13 @@
               </select>
             </div>
             <div class="col-6">
-              <label class="aform-label">Rute *</label>
-              <select name="rute_id" class="aform-control" required>
-                <option value="">-- Pilih --</option>
-                @foreach($rutes as $r)
-                <option value="{{ $r->id }}">{{ $r->label }}</option>
-                @endforeach
-              </select>
-            </div>
+  <label class="aform-label">Arah *</label>
+  <select name="arah" class="aform-control" required>
+    <option value="">-- Pilih Arah --</option>
+    <option value="barat_timur">🌅 Barat → Timur</option>
+    <option value="timur_barat">🌇 Timur → Barat</option>
+  </select>
+</div>
             <div class="col-6">
               <label class="aform-label">Tanggal *</label>
               <input type="date" name="tanggal" class="aform-control"
@@ -263,12 +316,12 @@
             <div class="col-6">
               <label class="aform-label">Jam Berangkat *</label>
               <input type="time" name="jam_berangkat" class="aform-control"
-                     value="08:00" required>
+                     value="17:00" required>
             </div>
             <div class="col-6">
               <label class="aform-label">Harga / Orang (Rp) *</label>
               <input type="number" name="harga" class="aform-control"
-                     placeholder="350000" required>
+                     placeholder="250000" required>
             </div>
             <div class="col-6">
               <label class="aform-label">Driver (opsional)</label>
@@ -288,7 +341,9 @@
         </div>
         <div class="modal-footer" style="border-top:1px solid var(--border)">
           <button type="button" class="abtn abtn-outline" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="abtn abtn-primary"><i class="bi bi-check-lg"></i> Tambah Jadwal</button>
+          <button type="submit" class="abtn abtn-primary">
+            <i class="bi bi-check-lg"></i> Tambah Jadwal
+          </button>
         </div>
       </form>
     </div>
@@ -308,9 +363,10 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="display:grid;gap:1rem">
-          <div style="padding:.8rem;background:rgba(244,160,32,.08);border-radius:8px;font-size:.82rem;color:#7a5000">
+          <div style="padding:.8rem;background:rgba(244,160,32,.08);border-radius:8px;
+                      font-size:.82rem;color:#7a5000">
             <i class="bi bi-info-circle me-1"></i>
-            Sistem akan membuat jadwal secara otomatis untuk setiap hari dalam rentang tanggal yang dipilih.
+            Sistem akan membuat jadwal untuk setiap hari dalam rentang tanggal yang dipilih.
             Hari yang sudah ada jadwalnya akan dilewati.
           </div>
           <div class="row g-3">
@@ -335,26 +391,32 @@
             <div class="col-6">
               <label class="aform-label">Tanggal Mulai *</label>
               <input type="date" name="tanggal_mulai" class="aform-control"
-                     min="{{ today()->format('Y-m-d') }}" value="{{ today()->format('Y-m-d') }}" required>
+                     min="{{ today()->format('Y-m-d') }}"
+                     value="{{ today()->format('Y-m-d') }}" required>
             </div>
             <div class="col-6">
               <label class="aform-label">Tanggal Akhir *</label>
               <input type="date" name="tanggal_akhir" class="aform-control"
-                     min="{{ today()->format('Y-m-d') }}" value="{{ today()->addMonth()->format('Y-m-d') }}" required>
+                     min="{{ today()->format('Y-m-d') }}"
+                     value="{{ today()->addMonth()->format('Y-m-d') }}" required>
             </div>
             <div class="col-6">
               <label class="aform-label">Jam Berangkat *</label>
-              <input type="time" name="jam_berangkat" class="aform-control" value="08:00" required>
+              <input type="time" name="jam_berangkat" class="aform-control"
+                     value="17:00" required>
             </div>
             <div class="col-6">
               <label class="aform-label">Harga / Orang (Rp) *</label>
-              <input type="number" name="harga" class="aform-control" placeholder="350000" required>
+              <input type="number" name="harga" class="aform-control"
+                     placeholder="350000" required>
             </div>
           </div>
         </div>
         <div class="modal-footer" style="border-top:1px solid var(--border)">
           <button type="button" class="abtn abtn-outline" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="abtn abtn-accent"><i class="bi bi-calendar-range"></i> Buat Jadwal Massal</button>
+          <button type="submit" class="abtn abtn-accent">
+            <i class="bi bi-calendar-range"></i> Buat Jadwal Massal
+          </button>
         </div>
       </form>
     </div>
@@ -379,7 +441,7 @@
         <div id="shareContent" style="display:none">
           <div class="mb-3">
             <label class="aform-label">Preview Pesan WhatsApp</label>
-            <textarea id="pesanWA" class="aform-control" rows="16"
+            <textarea id="pesanWA" class="aform-control" rows="18"
                       style="font-family:monospace;font-size:.8rem;background:#f9f9f9"></textarea>
           </div>
           <div class="d-flex gap-2 flex-wrap">
@@ -404,15 +466,17 @@
 
 @push('scripts')
 <script>
-let currentJadwalId = null;
-
 async function shareWA(jadwalId) {
-  currentJadwalId = jadwalId;
   const modal = new bootstrap.Modal(document.getElementById('modalShareWA'));
   modal.show();
 
   document.getElementById('shareLoading').style.display = '';
   document.getElementById('shareContent').style.display = 'none';
+
+  // Reset link WA
+  const linkEl = document.getElementById('linkWA');
+  linkEl.classList.remove('disabled');
+  linkEl.innerHTML = '<i class="bi bi-whatsapp"></i> Buka WhatsApp';
 
   try {
     const res = await fetch('{{ route("admin.pemesanan.share-driver") }}', {
@@ -428,10 +492,13 @@ async function shareWA(jadwalId) {
     const data = await res.json();
 
     document.getElementById('pesanWA').value = data.pesan;
-    document.getElementById('linkWA').href   = data.wa_link || '#';
-    if (!data.wa_link) {
-      document.getElementById('linkWA').innerHTML = '<i class="bi bi-whatsapp"></i> Driver belum di-assign';
-      document.getElementById('linkWA').classList.add('disabled');
+
+    if (data.wa_link) {
+      linkEl.href = data.wa_link;
+    } else {
+      linkEl.href = '#';
+      linkEl.innerHTML = '<i class="bi bi-whatsapp"></i> Driver belum di-assign';
+      linkEl.classList.add('disabled');
     }
 
     document.getElementById('shareLoading').style.display = 'none';
@@ -443,11 +510,10 @@ async function shareWA(jadwalId) {
 }
 
 function copyPesan() {
-  const el = document.getElementById('pesanWA');
+  const el  = document.getElementById('pesanWA');
+  const btn = event.target.closest('button');
   el.select();
   document.execCommand('copy');
-  // Feedback
-  const btn = event.target.closest('button');
   const orig = btn.innerHTML;
   btn.innerHTML = '<i class="bi bi-check-lg"></i> Tersalin!';
   btn.style.background = 'var(--success)';

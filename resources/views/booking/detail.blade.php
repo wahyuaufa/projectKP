@@ -3,11 +3,11 @@
 @section('title', 'Booking - Detail Pemesan')
 
 @push('styles')
+{{-- Leaflet CSS --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-/* ── Wilayah Select ─────────────────────────────────────────── */
-.wilayah-select-wrap {
-  position: relative;
-}
+/* Wilayah select */
+.wilayah-select-wrap { position: relative; }
 .wilayah-sel {
   appearance: none;
   padding-right: 2.5rem;
@@ -19,27 +19,42 @@
 .wilayah-sel:disabled {
   background-color: var(--bg-section);
   cursor: not-allowed;
-  opacity: .65;
+  opacity: .6;
 }
 .wilayah-spinner {
-  position: absolute;
-  right: 2.2rem;
-  top: 50%;
+  position: absolute; right: 2.2rem; top: 50%;
   transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
+  width: 14px; height: 14px;
   border: 2px solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
   display: none;
   animation: spin .6s linear infinite;
 }
-@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 .wilayah-spinner.show { display: block; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 
-/* ── Opsional box ───────────────────────────────────────────── */
-#opsional_asal, #opsional_tujuan {
-  transition: opacity .2s;
+/* Leaflet z-index fix — pastikan peta selalu di atas */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+  z-index: auto !important;
+}
+.leaflet-top, .leaflet-bottom {
+  z-index: 400 !important;
+}
+.leaflet-control {
+  z-index: 400 !important;
+}
+.leaflet-popup-pane {
+  z-index: 450 !important;
 }
 </style>
 @endpush
@@ -61,8 +76,6 @@
   <div class="section-divider" data-aos="fade-up"></div>
 
   <div class="row g-4">
-
-    {{-- ── Form ───────────────────────────────────────────── --}}
     <div class="col-lg-7">
       <form method="POST" action="{{ route('booking.simpan-detail') }}" id="detailForm">
         @csrf
@@ -128,9 +141,9 @@
               <div class="input-icon-wrap" style="max-width:200px">
                 <i class="bi bi-bag input-icon"></i>
                 <input type="number" name="jumlah_bagasi" id="jumlahBagasi"
-       class="form-control-gotrav" min="0" max="20" step="1"
-       value="{{ old('jumlah_bagasi', 0) }}"
-       oninput="this.value = this.value.replace(/[^0-9]/g, '') || '0'">
+                       class="form-control-gotrav" min="0" max="20" step="1"
+                       value="{{ old('jumlah_bagasi', 0) }}"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '') || '0'">
               </div>
             </div>
             <div class="bagasi-info-box mb-3">
@@ -144,7 +157,9 @@
               </div>
             </div>
             <div>
-              <label class="form-label-gotrav">Catatan untuk Driver <small class="text-muted">(opsional)</small></label>
+              <label class="form-label-gotrav">
+                Catatan untuk Driver <small class="text-muted">(opsional)</small>
+              </label>
               <textarea name="catatan" class="form-control-gotrav" rows="3"
                         placeholder="Contoh: Tolong hubungi 15 menit sebelum jemput..."
                         style="resize:vertical">{{ old('catatan') }}</textarea>
@@ -169,15 +184,31 @@
       </form>
     </div>
 
-    {{-- ── Sidebar Ringkasan ────────────────────────────────── --}}
+    {{-- Sidebar --}}
     <div class="col-lg-5" data-aos="fade-left">
       <div class="card-gotrav sticky-top" style="top:90px">
-        <div class="card-header-gotrav"><i class="bi bi-receipt me-2"></i>Ringkasan Pemesanan</div>
+        <div class="card-header-gotrav">
+          <i class="bi bi-receipt me-2"></i>Ringkasan Pemesanan
+        </div>
         <div class="card-body-gotrav">
-          <div class="ticket-row"><div class="ticket-row-label">Armada</div><div class="ticket-row-value">{{ $armada->nama }}</div></div>
-          <div class="ticket-row"><div class="ticket-row-label">Rute</div><div class="ticket-row-value" style="font-size:.85rem">{{ $arahRute == 'timur_ke_barat' ? 'Timur ke Barat' : 'Barat ke Timur' }}</div></div>
-          <div class="ticket-row"><div class="ticket-row-label">Tanggal</div><div class="ticket-row-value">{{ \Carbon\Carbon::parse($jadwalAda->tanggal ?? session('booking.tanggal'))->format('d M Y') }}</div></div>
-          <div class="ticket-row"><div class="ticket-row-label">Jam</div><div class="ticket-row-value">{{ $jamPenjemputan ? $jamPenjemputan . ' WIB' : '-' }}</div></div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Armada</div>
+            <div class="ticket-row-value">{{ $armada->nama }}</div>
+          </div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Arah</div>
+            <div class="ticket-row-value">{{ $arahRute }}</div>
+          </div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Tanggal</div>
+            <div class="ticket-row-value">
+              {{ \Carbon\Carbon::parse(session('booking.tanggal'))->format('d M Y') }}
+            </div>
+          </div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Jam Jemput</div>
+            <div class="ticket-row-value">{{ $jamPenjemputan }} WIB</div>
+          </div>
           <div class="ticket-row">
             <div class="ticket-row-label">Kursi</div>
             <div class="ticket-row-value">
@@ -187,10 +218,23 @@
               @endforeach
             </div>
           </div>
-          <div class="ticket-row"><div class="ticket-row-label">Penumpang</div><div class="ticket-row-value">{{ count($kursi) }} Orang</div></div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Penumpang</div>
+            <div class="ticket-row-value">{{ count($kursi) }} Orang</div>
+          </div>
           <hr style="border-color:var(--border)">
-          <div class="ticket-row"><div class="ticket-row-label">Harga/Orang</div><div class="ticket-row-value">Rp {{ number_format($armada->harga_per_rute, 0, ',', '.') }}</div></div>
-          <div class="ticket-row"><div class="ticket-row-label">Subtotal</div><div class="ticket-row-value">Rp {{ number_format($armada->harga_per_rute * count($kursi), 0, ',', '.') }}</div></div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Harga/Orang</div>
+            <div class="ticket-row-value">
+              Rp {{ number_format($hargaPerOrang, 0, ',', '.') }}
+            </div>
+          </div>
+          <div class="ticket-row">
+            <div class="ticket-row-label">Subtotal</div>
+            <div class="ticket-row-value">
+              Rp {{ number_format($hargaPerOrang * count($kursi), 0, ',', '.') }}
+            </div>
+          </div>
           <div class="ticket-row" id="rowBiayaBagasi" style="display:none">
             <div class="ticket-row-label" style="color:var(--danger)">Bagasi Tambahan</div>
             <div class="ticket-row-value" style="color:var(--danger)" id="nilaiByBagasi">Rp 0</div>
@@ -200,27 +244,30 @@
             <div class="ticket-row-label fw-bold" style="color:var(--text-dark)">Total</div>
             <div class="ticket-row-value" id="totalHarga"
                  style="font-size:1.2rem;font-weight:800;color:var(--primary)">
-              Rp {{ number_format($armada->harga_per_rute * count($kursi), 0, ',', '.') }}
+              Rp {{ number_format($hargaPerOrang * count($kursi), 0, ',', '.') }}
             </div>
           </div>
-          <div class="mt-3 p-3 rounded-3" style="background:rgba(40,167,69,.08);font-size:.82rem;color:#1a7a32">
-            <i class="bi bi-cash-coin me-1"></i> Pembayaran langsung ke driver saat tiba di tujuan.
+          <div class="mt-3 p-3 rounded-3"
+               style="background:rgba(40,167,69,.08);font-size:.82rem;color:#1a7a32">
+            <i class="bi bi-cash-coin me-1"></i>
+            Pembayaran langsung ke driver saat tiba di tujuan.
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 @endsection
 
 @push('scripts')
-<script>
+{{-- Leaflet JS — HARUS dimuat sebelum script kita --}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-// ════════════════════════════════════════════════════════════════
+<script>
+// ════════════════════════════════════════════════════════════
 // 1. BAGASI CALCULATOR
-// ════════════════════════════════════════════════════════════════
-const hargaPerOrang   = {{ $armada->harga_per_rute }};
+// ════════════════════════════════════════════════════════════
+const hargaPerOrang   = {{ $hargaPerOrang }};
 const jumlahPenumpang = {{ count($kursi) }};
 const bagasiGratis    = {{ $armada->bagasi_gratis * count($kursi) }};
 const biayaPerItem    = {{ $armada->biaya_bagasi_tambahan }};
@@ -232,116 +279,93 @@ document.getElementById('jumlahBagasi').addEventListener('input', function () {
   const tambahan = Math.max(0, jumlah - bagasiGratis);
   const biaya    = tambahan * biayaPerItem;
   const total    = subtotal + biaya;
-
   document.getElementById('totalHarga').textContent = fmtIDR(total);
   if (biaya > 0) {
     document.getElementById('rowBiayaBagasi').style.display = '';
     document.getElementById('nilaiByBagasi').textContent    = '+ ' + fmtIDR(biaya);
     document.getElementById('biayaBagasiInfo').style.display = '';
-    document.getElementById('biayaBagasiInfo').textContent  =
-      `${tambahan} item kelebihan → biaya tambahan ${fmtIDR(biaya)}`;
+    document.getElementById('biayaBagasiInfo').textContent   =
+      `${tambahan} item kelebihan → tambahan ${fmtIDR(biaya)}`;
   } else {
     document.getElementById('rowBiayaBagasi').style.display = 'none';
     document.getElementById('biayaBagasiInfo').style.display = 'none';
   }
 });
 
-// ════════════════════════════════════════════════════════════════
-// 2. TOGGLE OPSIONAL
-// ════════════════════════════════════════════════════════════════
-['asal', 'tujuan'].forEach(prefix => {
-  const toggle = document.getElementById(`toggle_${prefix}`);
-  const box    = document.getElementById(`opsional_${prefix}`);
-  if (toggle && box) {
-    toggle.addEventListener('change', () => {
-      box.style.display = toggle.checked ? '' : 'none';
-    });
-  }
-});
-
-// ════════════════════════════════════════════════════════════════
-// 3. WILAYAH CASCADE AJAX
-// ════════════════════════════════════════════════════════════════
-const WILAYAH_API = {
-  provinces : ()   => fetch('/api/wilayah/provinces').then(r => r.json()),
-  regencies : id   => fetch(`/api/wilayah/regencies/${id}`).then(r => r.json()),
-  districts : id   => fetch(`/api/wilayah/districts/${id}`).then(r => r.json()),
-  villages  : id   => fetch(`/api/wilayah/villages/${id}`).then(r => r.json()),
+// ════════════════════════════════════════════════════════════
+// 2. WILAYAH CASCADE AJAX
+// ════════════════════════════════════════════════════════════
+const WAPI = {
+  provinces: ()  => fetch('/api/wilayah/provinces').then(r => r.json()),
+  regencies: id  => fetch(`/api/wilayah/regencies/${id}`).then(r => r.json()),
+  districts: id  => fetch(`/api/wilayah/districts/${id}`).then(r => r.json()),
+  villages:  id  => fetch(`/api/wilayah/villages/${id}`).then(r => r.json()),
 };
 
-function isi(selectEl, data, placeholder) {
-  selectEl.innerHTML = `<option value="">${placeholder}</option>`;
-  data.forEach(item => {
+function isiSelect(el, data, ph) {
+  el.innerHTML = `<option value="">${ph}</option>`;
+  data.forEach(d => {
     const o = document.createElement('option');
-    o.value = item.id;
-    o.textContent = item.name;
-    selectEl.appendChild(o);
+    o.value = d.id; o.textContent = d.name;
+    el.appendChild(o);
   });
-  selectEl.disabled = false;
+  el.disabled = false;
 }
-
-function kosongkan(selectEl, placeholder) {
-  selectEl.innerHTML = `<option value="">${placeholder}</option>`;
-  selectEl.disabled  = true;
+function kosongkan(el, ph) {
+  el.innerHTML = `<option value="">${ph}</option>`;
+  el.disabled = true;
 }
-
-function setSpinner(prefix, level, show) {
-  const el = document.getElementById(`${prefix}_${level}_spin`);
-  if (el) el.classList.toggle('show', show);
+function spin(p, l, show) {
+  document.getElementById(`${p}_${l}_spin`)?.classList.toggle('show', show);
 }
-
-function simpanNama(prefix, level, selectEl) {
-  const opt = selectEl.options[selectEl.selectedIndex];
-  const nameEl = document.getElementById(`${prefix}_${level}_name`);
-  if (nameEl) nameEl.value = opt ? opt.textContent : '';
+function simpanNama(p, l, el) {
+  const h = document.getElementById(`${p}_${l}_name`);
+  if (h) h.value = el.options[el.selectedIndex]?.value
+    ? el.options[el.selectedIndex].textContent : '';
 }
 
 function initWilayah(prefix) {
   const g = id => document.getElementById(`${prefix}_${id}`);
 
-  // Load provinsi
-  setSpinner(prefix, 'province', true);
-  WILAYAH_API.provinces().then(data => {
-    isi(g('province'), data, '-- Pilih Provinsi --');
-    setSpinner(prefix, 'province', false);
+  spin(prefix, 'province', true);
+  WAPI.provinces().then(data => {
+    isiSelect(g('province'), data, '-- Pilih Provinsi --');
+    spin(prefix, 'province', false);
   });
 
-  // Provinsi → Kabupaten/Kota
   g('province').addEventListener('change', function () {
     simpanNama(prefix, 'province', this);
-    kosongkan(g('regency'),  '-- Pilih Kab/Kota --');
+    kosongkan(g('regency'),  '-- Pilih setelah Provinsi --');
     kosongkan(g('district'), '-- Pilih setelah Kab/Kota --');
     kosongkan(g('village'),  '-- Pilih setelah Kecamatan --');
     if (!this.value) return;
-    setSpinner(prefix, 'regency', true);
-    WILAYAH_API.regencies(this.value).then(data => {
-      isi(g('regency'), data, '-- Pilih Kab/Kota --');
-      setSpinner(prefix, 'regency', false);
+    spin(prefix, 'regency', true);
+    WAPI.regencies(this.value).then(data => {
+      isiSelect(g('regency'), data, '-- Pilih Kab/Kota --');
+      spin(prefix, 'regency', false);
     });
   });
 
-  // Kab/Kota → Kecamatan
   g('regency').addEventListener('change', function () {
     simpanNama(prefix, 'regency', this);
     kosongkan(g('district'), '-- Pilih Kecamatan --');
     kosongkan(g('village'),  '-- Pilih setelah Kecamatan --');
     if (!this.value) return;
-    setSpinner(prefix, 'district', true);
-    WILAYAH_API.districts(this.value).then(data => {
-      isi(g('district'), data, '-- Pilih Kecamatan --');
-      setSpinner(prefix, 'district', false);
+    spin(prefix, 'district', true);
+    WAPI.districts(this.value).then(data => {
+      isiSelect(g('district'), data, '-- Pilih Kecamatan --');
+      spin(prefix, 'district', false);
     });
   });
 
-  // Kecamatan → Desa/Kelurahan
   g('district').addEventListener('change', function () {
     simpanNama(prefix, 'district', this);
     kosongkan(g('village'), '-- Pilih Desa/Kelurahan --');
     if (!this.value) return;
-    setSpinner(prefix, 'village', true);
-    WILAYAH_API.villages(this.value).then(data => {
-      isi(g('village'), data, '-- Pilih Desa/Kelurahan --');
-      setSpinner(prefix, 'village', false);
+    spin(prefix, 'village', true);
+    WAPI.villages(this.value).then(data => {
+      isiSelect(g('village'), data, '-- Pilih Desa/Kelurahan --');
+      spin(prefix, 'village', false);
     });
   });
 
@@ -353,142 +377,229 @@ function initWilayah(prefix) {
 initWilayah('asal');
 initWilayah('tujuan');
 
-// ════════════════════════════════════════════════════════════════
-// 4. GOOGLE MAPS PIN
-// ════════════════════════════════════════════════════════════════
-function bukaMapModal(prefix) {
-  const modal = new bootstrap.Modal(document.getElementById(`mapModal_${prefix}`));
-  modal.show();
-
-  // Load iframe peta
-  const mapEl = document.getElementById(`mapEl_${prefix}`);
-  if (mapEl._loaded) return;
-  mapEl._loaded = true;
-
-  const lat = document.getElementById(`${prefix}_lat`).value || '-6.2088';
-  const lng = document.getElementById(`${prefix}_lng`).value || '106.8456';
-
-  document.getElementById(`${prefix}_modal_lat`).value = lat !== '-6.2088' ? lat : '';
-  document.getElementById(`${prefix}_modal_lng`).value = lng !== '106.8456' ? lng : '';
-
-  muatIframe(prefix, lat, lng);
-}
-
-function muatIframe(prefix, lat, lng) {
-  const mapEl = document.getElementById(`mapEl_${prefix}`);
-  mapEl.innerHTML = `
-    <div style="position:relative;width:100%;height:420px">
-      <iframe
-        src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed&hl=id"
-        width="100%" height="420"
-        style="border:0;display:block"
-        allowfullscreen loading="lazy">
-      </iframe>
-      <div style="position:absolute;inset:0;cursor:crosshair"
-           onclick="ambilKoordinatDariKlik(event,'${prefix}',${lat},${lng})"
-           title="Klik untuk memilih lokasi">
-      </div>
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);font-size:2rem;pointer-events:none">
-        📍
-      </div>
-    </div>`;
-}
-
-function cariLokasiMap(prefix) {
-  const q = document.getElementById(`mapSearch_${prefix}`).value.trim();
-  if (!q) return;
-
-  // Gunakan geocoding via nominatim (gratis, tanpa API key)
-  document.getElementById(`mapLoading_${prefix}`).style.display = 'flex';
-
-  fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ', Indonesia')}&format=json&limit=1`)
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById(`mapLoading_${prefix}`).style.display = 'none';
-      if (data.length) {
-        const lat = parseFloat(data[0].lat).toFixed(6);
-        const lng = parseFloat(data[0].lon).toFixed(6);
-        document.getElementById(`${prefix}_modal_lat`).value = lat;
-        document.getElementById(`${prefix}_modal_lng`).value = lng;
-        muatIframe(prefix, lat, lng);
-        previewKoordinat(prefix);
-      } else {
-        alert('Lokasi tidak ditemukan. Coba kata kunci lain.');
-      }
-    })
-    .catch(() => {
-      document.getElementById(`mapLoading_${prefix}`).style.display = 'none';
-    });
-}
-
-function muatMapDariKoordinat(prefix) {
-  const lat = document.getElementById(`${prefix}_modal_lat`).value.trim();
-  const lng = document.getElementById(`${prefix}_modal_lng`).value.trim();
-  if (!lat || !lng) return alert('Masukkan koordinat terlebih dahulu.');
-  muatIframe(prefix, lat, lng);
-  previewKoordinat(prefix);
-}
-
-function previewKoordinat(prefix) {
-  const lat = document.getElementById(`${prefix}_modal_lat`).value;
-  const lng = document.getElementById(`${prefix}_modal_lng`).value;
-  const el  = document.getElementById(`${prefix}_modal_coords_preview`);
-  if (lat && lng) {
-    el.innerHTML = `<i class="bi bi-geo-alt-fill" style="color:var(--danger)"></i>
-      <span style="font-weight:600;color:var(--text-dark)">${lat}, ${lng}</span>`;
-  }
-}
-
-function konfirmasiPin(prefix) {
-  const lat = document.getElementById(`${prefix}_modal_lat`).value.trim();
-  const lng = document.getElementById(`${prefix}_modal_lng`).value.trim();
-
-  if (!lat || !lng) {
-    alert('Silakan pilih lokasi di peta atau masukkan koordinat terlebih dahulu.');
-    return;
-  }
-
-  // Simpan ke hidden input
-  document.getElementById(`${prefix}_lat`).value = lat;
-  document.getElementById(`${prefix}_lng`).value = lng;
-
-  // Update display di form
-  document.getElementById(`${prefix}_coords_display`).innerHTML =
-    `<i class="bi bi-geo-alt-fill" style="color:var(--danger)"></i>
-     <span style="font-weight:600;color:var(--text-dark)">${lat}, ${lng}</span>
-     <a href="https://maps.google.com/maps?q=${lat},${lng}" target="_blank"
-        style="font-size:.78rem;color:var(--primary);margin-left:.3rem">
-       <i class="bi bi-box-arrow-up-right"></i> Lihat
-     </a>`;
-
-  // Update input manual juga
-  const latM = document.getElementById(`${prefix}_lat_manual`);
-  const lngM = document.getElementById(`${prefix}_lng_manual`);
-  if (latM) latM.value = lat;
-  if (lngM) lngM.value = lng;
-
-  bootstrap.Modal.getInstance(document.getElementById(`mapModal_${prefix}`)).hide();
-}
-
-function updateKoordinat(prefix, lat, lng) {
-  document.getElementById(`${prefix}_lat`).value = lat;
-  document.getElementById(`${prefix}_lng`).value = lng;
-
-  const display = document.getElementById(`${prefix}_coords_display`);
-  if (lat && lng) {
-    display.innerHTML = `<i class="bi bi-geo-alt-fill" style="color:var(--danger)"></i>
-      <span style="font-weight:600;color:var(--text-dark)">${lat}, ${lng}</span>`;
-  }
-}
-
-// Enter untuk cari di modal map
-['asal', 'tujuan'].forEach(prefix => {
-  const searchEl = document.getElementById(`mapSearch_${prefix}`);
-  if (searchEl) {
-    searchEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); cariLokasiMap(prefix); }
+// ════════════════════════════════════════════════════════════
+// 3. TOGGLE OPSIONAL
+// ════════════════════════════════════════════════════════════
+['asal', 'tujuan'].forEach(p => {
+  const t = document.getElementById(`toggle_${p}`);
+  const b = document.getElementById(`opsional_${p}`);
+  if (t && b) {
+    t.addEventListener('change', () => {
+      b.style.display = t.checked ? '' : 'none';
     });
   }
 });
+
+// ════════════════════════════════════════════════════════════
+// 4. LEAFLET INLINE MAP
+// Tidak pakai modal — langsung render di dalam form
+// ════════════════════════════════════════════════════════════
+const leafletMaps    = {};  // { prefix: L.Map }
+const leafletMarkers = {};  // { prefix: L.Marker }
+
+const DEF_LAT  = -6.2088;
+const DEF_LNG  = 106.8456;
+const DEF_ZOOM = 13;
+
+// Ikon marker bergaya Apple Maps / Google Maps
+function buatIcon() {
+  return L.divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center">
+        <div style="
+          width:36px;height:36px;
+          background:#EA4335;
+          border:3px solid #fff;
+          border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);
+          box-shadow:0 3px 10px rgba(0,0,0,.3);
+          display:flex;align-items:center;justify-content:center;
+          position:relative;z-index:2
+        ">
+          <div style="
+            width:12px;height:12px;
+            background:#fff;
+            border-radius:50%;
+          "></div>
+        </div>
+        <div style="
+          width:18px;height:6px;
+          background:rgba(0,0,0,.2);
+          border-radius:50%;
+          margin-top:2px;
+          filter:blur(2px);
+          flex-shrink:0
+        "></div>
+      </div>`,
+    iconSize:   [36, 48],
+    iconAnchor: [18, 44],
+    popupAnchor:[0, -44],
+  });
+}
+
+function tampilkanPeta(prefix) {
+  const container = document.getElementById(`mapContainer_${prefix}`);
+  const btnLabel  = document.getElementById(`btnMapLabel_${prefix}`);
+
+  // Toggle tampilan
+  const sedangTampil = container.style.display !== 'none';
+  if (sedangTampil) {
+    container.style.display = 'none';
+    btnLabel.textContent = 'Buka Peta';
+    return;
+  }
+
+  container.style.display = 'block';
+  btnLabel.textContent = 'Tutup Peta';
+
+  // Jika peta sudah pernah dibuat, cukup invalidate size
+  if (leafletMaps[prefix]) {
+    setTimeout(() => leafletMaps[prefix].invalidateSize(), 100);
+    return;
+  }
+
+  // Ambil koordinat tersimpan (jika ada)
+  const savedLat = parseFloat(document.getElementById(`${prefix}_lat`).value) || DEF_LAT;
+  const savedLng = parseFloat(document.getElementById(`${prefix}_lng`).value) || DEF_LNG;
+
+  // Beri waktu DOM render dulu sebelum init Leaflet
+  setTimeout(() => {
+    const map = L.map(`leafletMap_${prefix}`, {
+      center: [savedLat, savedLng],
+      zoom: DEF_ZOOM,
+      zoomControl: true,
+    });
+
+    leafletMaps[prefix] = map;
+
+    // Tile OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Marker draggable
+    const marker = L.marker([savedLat, savedLng], {
+      draggable: true,
+      icon: buatIcon(),
+    }).addTo(map);
+
+    leafletMarkers[prefix] = marker;
+
+    // Event: marker digeser
+    marker.on('dragend', function () {
+      const pos = this.getLatLng();
+      setKoordinat(prefix, pos.lat, pos.lng);
+    });
+
+    // Event: klik di peta → pindahkan marker
+    map.on('click', function (e) {
+      marker.setLatLng(e.latlng);
+      setKoordinat(prefix, e.latlng.lat, e.latlng.lng);
+    });
+
+    // Set nilai awal
+    setKoordinat(prefix, savedLat, savedLng);
+
+    // Paksa ukuran ulang
+    map.invalidateSize();
+  }, 150);
+}
+
+function setKoordinat(prefix, lat, lng) {
+  const latStr = parseFloat(lat).toFixed(7);
+  const lngStr = parseFloat(lng).toFixed(7);
+
+  // Update hidden input (yang dikirim ke server)
+  document.getElementById(`${prefix}_lat`).value = latStr;
+  document.getElementById(`${prefix}_lng`).value = lngStr;
+
+  // Update display input (yang terlihat user)
+  document.getElementById(`${prefix}_lat_display`).value = latStr;
+  document.getElementById(`${prefix}_lng_display`).value = lngStr;
+
+  // Update text display
+  const display = document.getElementById(`${prefix}_coords_display`);
+  display.innerHTML = `
+    <i class="bi bi-geo-alt-fill" style="color:var(--danger)"></i>
+    <strong>${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}</strong>`;
+
+  // Tampilkan link Google Maps
+  const mapsLink   = document.getElementById(`${prefix}_maps_link`);
+  const mapsAnchor = document.getElementById(`${prefix}_maps_anchor`);
+  if (mapsLink && mapsAnchor) {
+    mapsLink.style.display = 'block';
+    mapsAnchor.href = `https://maps.google.com/?q=${latStr},${lngStr}`;
+  }
+}
+
+function syncKoordDariInput(prefix) {
+  const lat = parseFloat(document.getElementById(`${prefix}_lat_display`).value);
+  const lng = parseFloat(document.getElementById(`${prefix}_lng_display`).value);
+  if (!isNaN(lat) && !isNaN(lng)) {
+    document.getElementById(`${prefix}_lat`).value = lat.toFixed(7);
+    document.getElementById(`${prefix}_lng`).value = lng.toFixed(7);
+  }
+}
+
+function pindahMarkerKoord(prefix) {
+  const lat = parseFloat(document.getElementById(`${prefix}_lat_display`).value);
+  const lng = parseFloat(document.getElementById(`${prefix}_lng_display`).value);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    alert('Masukkan koordinat yang valid terlebih dahulu.');
+    return;
+  }
+
+  if (leafletMaps[prefix] && leafletMarkers[prefix]) {
+    leafletMarkers[prefix].setLatLng([lat, lng]);
+    leafletMaps[prefix].setView([lat, lng], DEF_ZOOM);
+    setKoordinat(prefix, lat, lng);
+  }
+}
+
+// Gunakan lokasi GPS perangkat
+function lokasiSaya(prefix) {
+  if (! navigator.geolocation) {
+    alert('Browser Anda tidak mendukung geolokasi.');
+    return;
+  }
+
+  const loading = document.getElementById(`mapLoading_${prefix}`);
+  if (loading) loading.style.display = 'flex';
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      if (loading) loading.style.display = 'none';
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      // Tampilkan peta dulu jika belum terbuka
+      const container = document.getElementById(`mapContainer_${prefix}`);
+      if (container.style.display === 'none' || !container.style.display) {
+        tampilkanPeta(prefix);
+        setTimeout(() => {
+          if (leafletMaps[prefix] && leafletMarkers[prefix]) {
+            leafletMarkers[prefix].setLatLng([lat, lng]);
+            leafletMaps[prefix].setView([lat, lng], 17);
+            setKoordinat(prefix, lat, lng);
+          }
+        }, 400);
+      } else {
+        if (leafletMaps[prefix] && leafletMarkers[prefix]) {
+          leafletMarkers[prefix].setLatLng([lat, lng]);
+          leafletMaps[prefix].setView([lat, lng], 17);
+          setKoordinat(prefix, lat, lng);
+        }
+      }
+    },
+    err => {
+      if (loading) loading.style.display = 'none';
+      alert('Tidak dapat mengakses lokasi Anda. Pastikan izin lokasi diaktifkan.');
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
 </script>
 @endpush

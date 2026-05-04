@@ -117,9 +117,9 @@ class PemesananController extends Controller
         $rute    = $jadwal->rute->kota_asal . ' → ' . $jadwal->rute->kota_tujuan;
         $pemesanans = $jadwal->pemesanans;
 
-        $salam = $driver ? "Mas *{$driver->nama}*," : "Halo,";
+        $salam = $driver ? "Halo Kak *{$driver->nama}*," : "Halo,";
 
-        $pesan  = "*GOTRAV — INFO PENJEMPUTAN*\n";
+        $pesan  = "🚐 *GOTRAV — INFO PENJEMPUTAN*\n";
         $pesan .= "━━━━━━━━━━━━━━━━━━━━━\n";
         $pesan .= "{$salam}\n";
         $pesan .= "Berikut data penjemputan untuk:\n\n";
@@ -132,33 +132,45 @@ class PemesananController extends Controller
         $pesan .= "📋 *DAFTAR PENJEMPUTAN:*\n\n";
 
         foreach ($pemesanans as $i => $p) {
-            $no     = $i + 1;
-            $kursi  = $p->kursis->pluck('nomor_kursi')->join(', ');
-            $nama   = $p->user->nama_lengkap;
-            $wa     = $p->user->no_whatsapp;
-            $jemput = $p->titik_penjemputan;
-            $tujuan = $p->titik_tujuan;
-            $bagasi = $p->jumlah_bagasi > 0 ? "🧳 Bagasi: {$p->jumlah_bagasi} item\n" : '';
+            $no    = $i + 1;
+            $kursi = $p->kursis->pluck('nomor_kursi')->join(', ');
+            $nama  = $p->user->nama_lengkap;
+            $wa    = $p->user->no_whatsapp;
 
-            // Ekstrak GPS jika ada
-            $gpsJemput = '';
-            $gpsTujuan = '';
-            if (preg_match('/\[GPS: ([\-\d\.]+),([\-\d\.]+)\]/', $jemput, $m)) {
-                $gpsJemput = "\n   📍 https://maps.google.com/?q={$m[1]},{$m[2]}";
-                $jemput = preg_replace('/\s*\[GPS:[^\]]+\]/', '', $jemput);
-            }
-            if (preg_match('/\[GPS: ([\-\d\.]+),([\-\d\.]+)\]/', $tujuan, $m)) {
-                $gpsTujuan = "\n   📍 https://maps.google.com/?q={$m[1]},{$m[2]}";
-                $tujuan = preg_replace('/\s*\[GPS:[^\]]+\]/', '', $tujuan);
-            }
+            // Bersihkan teks dari tag GPS lama di kolom titik_*
+            $jemput = preg_replace('/\s*\[GPS:[^\]]+\]/', '', $p->titik_penjemputan);
+            $tujuan = preg_replace('/\s*\[GPS:[^\]]+\]/', '', $p->titik_tujuan);
 
             $pesan .= "*{$no}. {$nama}*\n";
             $pesan .= "   💺 Kursi: {$kursi}\n";
+            $pesan .= "   ⏰ Jam Jemput: {$p->jam_penjemputan_format} WIB\n";
             $pesan .= "   📞 WA: {$wa}\n";
-            $pesan .= "   🟢 Jemput: {$jemput}{$gpsJemput}\n";
-            $pesan .= "   🔴 Tujuan: {$tujuan}{$gpsTujuan}\n";
-            $pesan .= $bagasi;
-            if ($p->catatan) $pesan .= "   📝 Catatan: {$p->catatan}\n";
+            $pesan .= "   🟢 Jemput: {$jemput}\n";
+
+            // Link Maps penjemputan
+            if ($p->maps_jemput) {
+                $pesan .= "   📍 Lokasi Jemput: {$p->maps_jemput}\n";
+            }
+
+            $pesan .= "   🔴 Tujuan: {$tujuan}\n";
+
+            // Link Maps tujuan
+            if ($p->maps_tujuan) {
+                $pesan .= "   📍 Lokasi Tujuan: {$p->maps_tujuan}\n";
+            }
+
+            // Link Directions jika keduanya ada
+            if ($p->maps_directions) {
+                $pesan .= "   🗺️ Rute Navigasi: {$p->maps_directions}\n";
+            }
+
+            if ($p->jumlah_bagasi > 0) {
+                $pesan .= "   🧳 Bagasi: {$p->jumlah_bagasi} item\n";
+            }
+            if ($p->catatan) {
+                $pesan .= "   📝 Catatan: {$p->catatan}\n";
+            }
+
             $pesan .= "\n";
         }
 

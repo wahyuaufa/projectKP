@@ -6,7 +6,9 @@
   <div class="container">
     <div class="auth-card" data-aos="fade-up">
       <div class="auth-logo">
-        <div class="logo-icon"><i class="bi bi-bus-front-fill"></i></div>
+        <div class="logo-icon">
+    <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 100%; height: auto;">
+</div>
         <div class="auth-title">Masuk ke Akun Anda</div>
         <p class="text-muted" style="font-size:.88rem;margin-top:.3rem">Masuk untuk melanjutkan pemesanan</p>
       </div>
