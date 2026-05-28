@@ -16,7 +16,7 @@
           Terpercaya
         </h1>
         <p class="hero-subtitle">
-          PR GOTRAV Mitra Abadi siap menemani perjalanan Anda dengan layanan travel door to door yang nyaman dan terpercaya.
+          GoTrav Travel siap menemani perjalanan Anda dengan layanan travel door to door yang nyaman dan terpercaya.
         </p>
         <div class="hero-features">
           <div class="hero-feature-item"><i class="bi bi-door-open"></i> Door to Door Service</div>
@@ -35,24 +35,11 @@
       </div>
 
       <div class="col-lg-6" data-aos="fade-left" data-aos-delay="150">
-        <div class="hero-image-wrap">
-          {{-- Placeholder SVG car illustration --}}
-          <svg viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;filter:drop-shadow(0 20px 40px rgba(0,0,0,.3))">
-            <rect x="30" y="130" width="440" height="100" rx="20" fill="white" opacity=".95"/>
-            <rect x="60" y="80" width="300" height="90" rx="16" fill="white" opacity=".9"/>
-            <circle cx="120" cy="235" r="30" fill="#1A3A5C"/>
-            <circle cx="120" cy="235" r="18" fill="#eee"/>
-            <circle cx="380" cy="235" r="30" fill="#1A3A5C"/>
-            <circle cx="380" cy="235" r="18" fill="#eee"/>
-            <rect x="62" y="82" width="296" height="55" rx="12" fill="#3A6FA0" opacity=".6"/>
-            <rect x="80" y="86" width="80" height="45" rx="8" fill="rgba(255,255,255,.5)"/>
-            <rect x="170" y="86" width="80" height="45" rx="8" fill="rgba(255,255,255,.5)"/>
-            <rect x="260" y="86" width="80" height="45" rx="8" fill="rgba(255,255,255,.5)"/>
-            <rect x="30" y="175" width="30" height="20" rx="5" fill="#F4A020" opacity=".8"/>
-            <rect x="440" y="175" width="30" height="20" rx="5" fill="#F4A020" opacity=".8"/>
-            <text x="250" y="165" text-anchor="middle" fill="white" font-size="12" font-weight="bold" opacity=".9">GOTRAV</text>
-          </svg>
-        </div>
+       <div class="hero-image-wrap">
+  <img src="{{ asset('images/mobil.png') }}" 
+       alt="Armada GoTrav" 
+       style="max-width:100%; max-width:600px; border-radius:16px; filter:drop-shadow(0 20px 40px rgba(0,0,0,.3));">
+</div>
       </div>
     </div>
   </div>
@@ -87,10 +74,10 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-6" data-aos="fade-right">
         <div class="section-tag">Tentang Kami</div>
-        <h2 class="section-title">PR GOTRAV Mitra Abadi</h2>
+        <h2 class="section-title">GoTrav Travel</h2>
         <div class="section-divider"></div>
         <p style="line-height:1.8;">
-          PR GOTRAV Mitra Abadi merupakan perusahaan transportasi yang berkomitmen memberikan layanan perjalanan terbaik dengan sistem door to door. Keselamatan, kenyamanan dan kepuasan pelanggan adalah prioritas kami.
+          GoTrav Travel merupakan perusahaan transportasi yang berkomitmen memberikan layanan perjalanan terbaik dengan sistem door to door. Keselamatan, kenyamanan dan kepuasan pelanggan adalah prioritas kami.
         </p>
         <p style="line-height:1.8;">
           Dengan lebih dari 10 tahun pengalaman dan armada yang terawat, kami melayani rute antar kota dan bandara dengan penuh profesionalisme.
