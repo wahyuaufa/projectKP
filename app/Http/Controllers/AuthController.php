@@ -76,7 +76,7 @@ public function register(Request $request)
 
     // Generate OTP dan kirim via Fonnte
     $otp = $user->generateOtp();
-    //$this->kirimOTP($user->no_whatsapp, $otp);
+    $this->kirimOTP($user->no_whatsapp, $otp);
 
     // Simpan no_whatsapp di session untuk halaman verifikasi
     session(['verifikasi_no_wa' => $user->no_whatsapp]);
@@ -101,12 +101,15 @@ public function showVerifikasi()
 
     // Jika OTP belum ada atau sudah expired → generate baru otomatis
     if (! $user->otp_expires_at || now()->gt($user->otp_expires_at)) {
-        $otp = $user->generateOtp();
+
 
         // Kirim WA hanya di production
-        if (app()->environment('production')) {
-            $this->kirimOTP($user->no_whatsapp, $otp);
-        }
+        // if (app()->environment('production')) {
+        //     $this->kirimOTP($user->no_whatsapp, $otp);
+        // }
+
+        $otp = $user->generateOtp();
+        $this->kirimOTP($user->no_whatsapp, $otp);
     }
 
     // Hitung sisa detik OTP
