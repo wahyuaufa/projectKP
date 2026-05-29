@@ -80,15 +80,27 @@
 
         {{-- Nav links --}}
         <div class="collapse navbar-collapse d-lg-flex align-items-center gap-1" id="mainNav">
-          <nav class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-1 mt-3 mt-lg-0 flex-grow-1 justify-content-center">
-            <a href="{{ route('home') }}"            class="nav-link @active('home')">Beranda</a>
-            <a href="{{ route('home') }}#tentang"    class="nav-link">Tentang Kami</a>
-            <a href="{{ route('home') }}#layanan"    class="nav-link">Layanan</a>
-            <a href="{{ route('home') }}#cara-pesan" class="nav-link">Cara Pesan</a>
+          <nav class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-1 mt-3 mt-lg-0 flex-grow-1 justify-content-center"
+               id="main-nav-links">
+            <a href="{{ route('home') }}"
+               class="nav-link nav-anchor {{ request()->routeIs('home') ? 'active' : '' }}"
+               data-section="beranda">Beranda</a>
+            <a href="{{ route('home') }}#tentang"
+               class="nav-link nav-anchor"
+               data-section="tentang">Tentang Kami</a>
+            <a href="{{ route('home') }}#layanan"
+               class="nav-link nav-anchor"
+               data-section="layanan">Layanan</a>
+            <a href="{{ route('home') }}#cara-pesan"
+               class="nav-link nav-anchor"
+               data-section="cara-pesan">Cara Pesan</a>
             @auth
-            <a href="{{ route('riwayat.index') }}"   class="nav-link @active('riwayat.*')">Riwayat Pesanan</a>
+            <a href="{{ route('riwayat.index') }}"
+               class="nav-link {{ request()->routeIs('riwayat.*') ? 'active' : '' }}">Riwayat Pesanan</a>
             @endauth
-            <a href="{{ route('home') }}#kontak"     class="nav-link">Kontak</a>
+            <a href="{{ route('home') }}#kontak"
+               class="nav-link nav-anchor"
+               data-section="kontak">Kontak</a>
           </nav>
 
           {{-- ── Tombol Kanan ────────────────────────────────── --}}
@@ -121,7 +133,6 @@
                   <i class="bi bi-person-circle"></i>
                   {{ Str::limit(Auth::user()->nama_lengkap, 12) }}
 
-                  {{-- Badge Admin --}}
                   @if(Auth::user()->isAdmin())
                   <span style="background:var(--accent);color:#fff;font-size:.6rem;
                                padding:.1rem .4rem;border-radius:4px;font-weight:700">
@@ -144,7 +155,6 @@
                       <div style="font-size:.75rem;color:var(--muted);margin-top:.1rem">
                         {{ Auth::user()->no_whatsapp }}
                       </div>
-                      {{-- Status Verifikasi --}}
                       <div class="mt-2">
                         @if(Auth::user()->is_verified)
                           <span class="badge-verified">
@@ -159,7 +169,6 @@
                     </div>
                   </li>
 
-                  {{-- Tombol Verifikasi — hanya jika belum verified --}}
                   @if(! Auth::user()->is_verified)
                   <li>
                     <a class="dropdown-item d-flex align-items-center gap-2"
@@ -173,7 +182,6 @@
                   <li><hr class="dropdown-divider my-1"></li>
                   @endif
 
-                  {{-- Menu Admin --}}
                   @if(Auth::user()->isAdmin())
                   <li>
                     <a class="dropdown-item d-flex align-items-center gap-2"
@@ -185,7 +193,6 @@
                   <li><hr class="dropdown-divider my-1"></li>
                   @endif
 
-                  {{-- Riwayat Pesanan --}}
                   <li>
                     <a class="dropdown-item d-flex align-items-center gap-2"
                        href="{{ route('riwayat.index') }}"
@@ -195,7 +202,6 @@
                   </li>
                   <li><hr class="dropdown-divider my-1"></li>
 
-                  {{-- Logout --}}
                   <li>
                     <form method="POST" action="{{ route('logout') }}">
                       @csrf
@@ -239,14 +245,11 @@
   </div>
   @endif
 
-  {{-- ── Warning Verifikasi ───────────────────────────────── --}}
   @if(session('warning'))
   <div class="container mt-3">
     <div class="alert-warning-gotrav">
       <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;font-size:1.1rem"></i>
-      <div class="flex-grow-1">
-        {{ session('warning') }}
-      </div>
+      <div class="flex-grow-1">{{ session('warning') }}</div>
       @auth
       @if(! Auth::user()->is_verified)
       <a href="{{ route('auth.verifikasi') }}"
@@ -271,7 +274,7 @@
       <div class="row g-4">
         <div class="col-lg-4" data-aos="fade-up">
           <div class="footer-brand">
-            <i class="bi bi-bus-front-fill me-2"></i>PR GOTRAV Mitra Abadi
+            <i class="bi bi-bus-front-fill me-2"></i>GoTrav Travel
           </div>
           <p style="font-size:.9rem;line-height:1.7;">
             Layanan travel door to door yang nyaman, aman, dan terpercaya.
@@ -307,27 +310,27 @@
         <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
           <div class="footer-heading">Layanan</div>
           <a href="#" class="footer-link">Door to Door Service</a>
-          <a href="#" class="footer-link">Armada Nyaman</a>
-          <a href="#" class="footer-link">Driver Profesional</a>
-          <a href="#" class="footer-link">Harga Terjangkau</a>
+          <a href="#" class="footer-link">Carter Mobil</a>
+          <a href="#" class="footer-link">Antar Jemput Bandara</a>
+          <a href="#" class="footer-link">Kirim Barang 24 Jam</a>
         </div>
 
         <div class="col-lg-3" data-aos="fade-up" data-aos-delay="300">
           <div class="footer-heading">Kontak</div>
           <div class="footer-link d-flex align-items-center gap-2">
-            <i class="bi bi-whatsapp text-success"></i> +62 812-xxxx-xxxx
+            <i class="bi bi-whatsapp text-success"></i> +62 812-8266-1982
           </div>
           <div class="footer-link d-flex align-items-center gap-2">
-            <i class="bi bi-envelope"></i> info@gotrav.id
+            <i class="bi bi-envelope"></i> gotrav.info@gmail.com
           </div>
           <div class="footer-link d-flex align-items-start gap-2">
-            <i class="bi bi-geo-alt mt-1"></i> Jakarta, Indonesia
+            <i class="bi bi-geo-alt mt-1"></i> Batang, Indonesia
           </div>
         </div>
       </div>
 
       <div class="footer-bottom">
-        &copy; {{ date('Y') }} PR GOTRAV Mitra Abadi. Hak cipta dilindungi.
+        &copy; {{ date('Y') }} GoTrav Travel. Hak cipta dilindungi.
       </div>
     </div>
   </footer>
@@ -336,7 +339,57 @@
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script>
     AOS.init({ duration: 700, once: true, offset: 60 });
+
+    // ── Active nav link berdasarkan scroll section ──────────
+    (function () {
+      // Hanya jalankan di halaman home
+      const isHome = {{ request()->routeIs('home') ? 'true' : 'false' }};
+      if (!isHome) return;
+
+      const anchorLinks = document.querySelectorAll('.nav-anchor[data-section]');
+
+      // Map section id → nav link
+      const sectionMap = {};
+      anchorLinks.forEach(link => {
+        sectionMap[link.dataset.section] = link;
+      });
+
+      function setActive(id) {
+        anchorLinks.forEach(l => l.classList.remove('active'));
+        if (sectionMap[id]) sectionMap[id].classList.add('active');
+      }
+
+      // Gunakan IntersectionObserver untuk detect section yang terlihat
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActive(entry.target.id);
+          }
+        });
+      }, {
+        rootMargin: '-40% 0px -55% 0px', // aktif saat section di tengah viewport
+        threshold: 0
+      });
+
+      // Observe semua section yang ada di halaman
+      const sectionIds = ['beranda', 'tentang', 'layanan', 'cara-pesan', 'kontak'];
+      sectionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+
+      // Saat halaman pertama dimuat, set beranda aktif jika di paling atas
+      if (window.scrollY < 100) setActive('beranda');
+
+      // Handle klik anchor — langsung set active tanpa tunggu scroll
+      anchorLinks.forEach(link => {
+        link.addEventListener('click', function () {
+          setActive(this.dataset.section);
+        });
+      });
+    })();
   </script>
+
   @stack('scripts')
 </body>
 </html>
