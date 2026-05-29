@@ -31,11 +31,11 @@ class Armada extends Model
     }
 
     public function getFotoUrlAttribute(): string
-    {
-        return $this->foto
-            ? asset('storage/' . $this->foto)
-            : asset('images/default-armada.png');
-    }
+{
+    return $this->foto
+        ? asset($this->foto)
+        : asset('images/default-armada.png');
+}
 
     /** Jadwal armada ini hanya bisa dibuat admin? */
     public function isAdminOnly(): bool

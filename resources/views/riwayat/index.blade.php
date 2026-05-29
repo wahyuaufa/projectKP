@@ -52,11 +52,14 @@
               <span class="badge-status {{ $p->status_badge }}">{{ $p->status_label }}</span>
             </td>
             <td>
+              {{-- Lihat Tiket --}}
               <a href="{{ route('riwayat.tiket', $p->kode_pemesanan) }}"
                  class="btn btn-sm btn-outline-secondary rounded-2"
                  title="Lihat Tiket">
                 <i class="bi bi-eye"></i>
               </a>
+
+              {{-- Batalkan (hanya untuk akan_datang) --}}
               @if($p->status === 'akan_datang')
               <form method="POST" action="{{ route('riwayat.batalkan', $p->kode_pemesanan) }}"
                     class="d-inline"
@@ -66,6 +69,23 @@
                   <i class="bi bi-x-circle"></i>
                 </button>
               </form>
+              @endif
+
+              {{-- Download Faktur: selalu tampil, disabled jika belum selesai --}}
+              @if($p->status === 'selesai')
+                <a href="{{ route('riwayat.faktur', $p->kode_pemesanan) }}"
+                   class="btn btn-sm btn-outline-success rounded-2"
+                   title="Download Faktur"
+                   target="_blank">
+                  <i class="bi bi-download"></i>
+                </a>
+              @else
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary rounded-2 btn-faktur-disabled"
+                        title="Faktur belum tersedia"
+                        data-status="{{ $p->status_label }}">
+                  <i class="bi bi-download"></i>
+                </button>
               @endif
             </td>
           </tr>
@@ -83,4 +103,71 @@
     @endif
   </div>
 </div>
+
+{{-- ── Toast Notification ── --}}
+<div id="faktur-toast" style="
+  position:fixed; bottom:28px; right:28px; z-index:9999;
+  display:none; align-items:center; gap:12px;
+  background:#1e293b; color:#f1f5f9;
+  padding:14px 18px; border-radius:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+  font-size:.875rem; font-weight:500;
+  min-width:280px; max-width:360px;
+">
+  <span style="
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:8px;
+    background:rgba(251,191,36,.15); flex-shrink:0;
+  ">
+    <i class="bi bi-lock-fill" style="color:#fbbf24; font-size:1rem;"></i>
+  </span>
+  <div style="flex:1; min-width:0;">
+    <div style="font-weight:700; margin-bottom:2px;">Faktur belum tersedia</div>
+    <div id="faktur-toast-msg" style="color:#94a3b8; font-size:.8rem; line-height:1.4;"></div>
+  </div>
+  <button onclick="closeToast()" style="
+    background:none; border:none; color:#64748b;
+    cursor:pointer; padding:2px; line-height:1; flex-shrink:0;
+  "><i class="bi bi-x-lg"></i></button>
+</div>
+
+<style>
+  @keyframes gt-slide-up {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .btn-faktur-disabled {
+    opacity:.45;
+    cursor:not-allowed !important;
+  }
+</style>
+
+<script>
+  var _toastTimer;
+
+  document.querySelectorAll('.btn-faktur-disabled').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var label = this.dataset.status || 'belum selesai';
+      showFakturToast(
+        'Faktur hanya tersedia jika status pesanan <strong>Selesai</strong>. ' +
+        'Status saat ini: <strong>' + label + '</strong>.'
+      );
+    });
+  });
+
+  function showFakturToast(msg) {
+    var toast = document.getElementById('faktur-toast');
+    document.getElementById('faktur-toast-msg').innerHTML = msg;
+    toast.style.display = 'flex';
+    toast.style.animation = 'none';
+    void toast.offsetWidth; // reflow — paksa animasi restart
+    toast.style.animation = 'gt-slide-up .25s ease forwards';
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(closeToast, 4500);
+  }
+
+  function closeToast() {
+    document.getElementById('faktur-toast').style.display = 'none';
+  }
+</script>
 @endsection

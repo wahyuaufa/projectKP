@@ -27,6 +27,25 @@ class RiwayatController extends Controller
         return view('riwayat.index', compact('pemesanans', 'status'));
     }
 
+    public function faktur(string $kode)
+{
+    $pemesanan = Pemesanan::with([
+    'user',
+    'jadwal.rute',
+    'jadwal.armada',
+    'kursis', // ← ganti dari detailPemesanans
+])->where('kode_pemesanan', $kode)
+  ->where('user_id', auth()->id())
+  ->firstOrFail();
+ 
+    // Tolak akses jika pesanan belum selesai
+    if ($pemesanan->status !== 'selesai') {
+        abort(403, 'Faktur hanya tersedia untuk pesanan yang telah selesai.');
+    }
+ 
+    return view('riwayat.faktur', compact('pemesanan'));
+}
+
     public function tiket(string $kode)
     {
         $pemesanan = Pemesanan::with(['jadwal.armada', 'jadwal.rute', 'kursis', 'user'])

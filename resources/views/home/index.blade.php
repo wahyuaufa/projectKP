@@ -131,16 +131,12 @@
         <div class="armada-card">
           <div class="armada-card-image">
             @if($armada->foto)
-              <img src="{{ $armada->foto_url }}" alt="{{ $armada->nama }}">
+              <img src="{{ asset($armada->foto) }}" alt="{{ $armada->nama }}">
             @else
               {{-- Placeholder --}}
-              <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg" style="max-width:200px">
-                <rect x="10" y="40" width="220" height="60" rx="12" fill="#1A3A5C" opacity=".15"/>
-                <rect x="30" y="20" width="150" height="50" rx="10" fill="#1A3A5C" opacity=".2"/>
-                <circle cx="60"  cy="105" r="16" fill="#1A3A5C" opacity=".3"/>
-                <circle cx="180" cy="105" r="16" fill="#1A3A5C" opacity=".3"/>
-                <text x="120" y="65" text-anchor="middle" fill="#1A3A5C" font-size="11" font-weight="700" opacity=".7">{{ $armada->nama }}</text>
-              </svg>
+              <img src="{{ asset('images/innova.jpg') }}"
+     alt="{{ $armada->nama }}"
+     style="max-width:200px; width:100%; border-radius:10px; object-fit:cover;">
             @endif
           </div>
           <div class="armada-card-body">

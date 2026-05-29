@@ -333,14 +333,18 @@ img { max-width: 100%; }
   transform: translateY(-4px);
 }
 .armada-card-image {
-  background: var(--bg-section);
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 180px;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
 }
-.armada-card-image img { max-height: 130px; object-fit: contain; }
+.armada-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
 .armada-card-body { padding: 1.5rem; }
 .armada-card-title {
   font-family: var(--font-heading);

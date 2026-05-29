@@ -87,4 +87,6 @@ Route::prefix('riwayat')->name('riwayat.')->middleware('auth')->group(function (
     Route::get('/',                    [RiwayatController::class, 'index'])->name('index');
     Route::get('/tiket/{kode}',        [RiwayatController::class, 'tiket'])->name('tiket');
     Route::post('/batalkan/{kode}',    [RiwayatController::class, 'batalkan'])->name('batalkan');
+    Route::get('/{kode}/faktur', [RiwayatController::class, 'faktur'])->name('faktur');
+ 
 });
